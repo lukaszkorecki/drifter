@@ -14,7 +14,7 @@ if [[ "$name" == "" ]] ; then
 fi
 
 if [[ "$name" == "work" || "$name" == "dev" ]] ; then
-  echo > $name $command
+  echo "> $name $command"
 else
   echo "Unknown machine name: $name, accepted: 'dev' and 'work'"
   exit 1
