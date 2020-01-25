@@ -1,6 +1,6 @@
 # Drifter
 
-> adventures in New Bohemia, the drifter is now housebound
+> Adventures in New Bohemia, the drifter is now housebound
 
 *Jehst - The Return of the Drifter*
 
@@ -10,6 +10,10 @@
 Drifter is a simple (very simple) replacement for [Vagrant](https://vagrantup.com) based on [Multipass](https://multipass.run).
 
 > :warning: Drifter is pre-alpha quality
+
+By default it will work with two vms `work` or `dev` (my choice :-)), either will be provisioned with 4 CPUs, 4 GB of RAM and 20GB disk running Ubuntu 18.04.
+
+You can choose to use bundled `provision.sh` script, which installs Docker, Emacs etc or pass your own.
 
 ## Goals
 
@@ -25,17 +29,6 @@ Drifter is a simple (very simple) replacement for [Vagrant](https://vagrantup.co
 - `jq`
 - macOs (for now)
 
-## Usage
-
-
-- `./drifter dev ssh` Will start a "dev" vm, based on the 18.04 image, copy the multipass ssh key for your usage and ssh you to the VM. Also forwards the SSH agent
-- `./drifter dev suspend` will suspend the vm
-- `./drifter dev stop` will send you a present 🎁
-- `./drifter dev tunnels` will use SSH to tunnel access to some ports
-- `./drfiter dev provision` will run `./provision.sh` script to provision the machine, run as many times as you want
-- `./drifter dev shell` will open a shell in the machine, but without any tunnels, SSH agent forwarding etc
-
-
 # Roadmap
 
 - [ ] create your own user and throw-away SSH key for auth, rather than using the one provided with Multipass
@@ -44,3 +37,22 @@ Drifter is a simple (very simple) replacement for [Vagrant](https://vagrantup.co
 - [ ] ability to specify machine names
 - [ ] better UX overall
 - [ ] custom provision script path
+
+
+# Usage
+
+```
+🧔🏻 Drifter, a small vagrant, powered by multipass
+All commands require the name of the VM to be passed e.g.
+# drifter dev ssh
+or
+# drifter provision dev ./my/vm.sh
+Commands:
+    suspend) Suspend the VM. Unsupported right now
+    stop) Stop the VM
+    provision) Provision the VM with given Bash script
+    tunnels) Start a SSH session with multiple ports opened
+    shell) Start a shell, no agent or tunnels opened
+    ssh) Start a SSH session with SSH agent forwarded
+    ip) Find the IP of the VM
+```
