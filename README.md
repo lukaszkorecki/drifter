@@ -33,10 +33,10 @@ You can choose to use bundled `provision.sh` script, which installs Docker, Emac
 
 - [ ] create your own user and throw-away SSH key for auth, rather than using the one provided with Multipass
 - [ ] configurable ports for tunneling
-- [ ] better handling of command line options
+- [x] better handling of command line options
 - [ ] ability to specify machine names
-- [ ] better UX overall
-- [ ] custom provision script path
+- [x] better UX overall
+- [x] custom provision script path
 
 
 # Usage
