@@ -2,79 +2,88 @@
 
 set -eo pipefail
 
-name=$1
-command=$2
+log() {
+  logger -t drifter -s -- "$*"  > /dev/stderr
+}
 
 sshKey=~/.ssh/multipass.id_rsa
 
-if [[ "$name" == "" ]] ; then
-  echo "Need a name! Only 'dev' and 'work' are supported atm."
-  multipass list
-  exit 1
-fi
+# TODO: change this to:
+# - use cloud init to setup a user matching current username on the host
+# - generate a dedicated SSH key
+# - add it via cloud-init
+# and stop copying the mulitpass key
+drifter-ensure-ssh-key() {
+  # If we don't have it - get the multipass ssh key, we will need sudo for that
+  if [[ ! -e $sshKey  ]] ; then
+    log "$sshKey not found, copying"
+    sudo cp /var/root/Library/Application\ Support/multipassd/ssh-keys/id_rsa $sshKey
+    sudo chown $USER:staff $sshKey
+  fi
+}
 
-if [[ "$name" == "work" || "$name" == "dev" ]] ; then
-  echo "> $name $command"
-else
-  echo "Unknown machine name: $name, accepted: 'dev' and 'work'"
-  exit 1
-fi
+drifter-launch-if-necessary() {
+  local name=$1
+  # Create the machine if not there already
+  if [[ "$(multipass info --all --format json | jq -r .info.$name)" == "null" ]] ;then
+    log "creating $name"
+    multipass launch \
+              --cpus 4 \
+              --mem 4G \
+              --disk 20G \
+              --name $name \
+              18.04
+  fi
 
+}
 
-# If we don't have it - get the multipass ssh key, we will need sudo for that
-if [[ ! -e $sshKey  ]] ; then
-  sudo cp /var/root/Library/Application\ Support/multipassd/ssh-keys/id_rsa $sshKey
-  sudo chown $USER:staff .ssh/multipass.id_rsa
-fi
-
-
-
-if [[ "$command" == "stop" ]] ; then
+drifter-stop() {
+  local name=$1
+  log "stopping $name"
   multipass stop $name
   exit 0
-fi
+}
 
-if [[ "$command" == "suspend" ]] ; then
-  multipass stop $name
+drifter-suspend() {
+  local name=$1
+  log "suspending $name"
+  multipass suspend $name
   exit 0
-fi
+}
 
-
-# Create the machine if not there
-if [[ "$(multipass list | grep $name)" == "" ]] ;then
-  multipass launch \
-            --cpus 4 \
-            --mem 4G \
-            --disk 20G \
-            --name $name \
-            18.04
-
-fi
-
-if [[ "$command" == "provision" ]] ; then
-  multipass transfer ./provision.sh $name:/tmp/provision.sh
+drifter-provision() {
+  local name=$1
+  local provisionScript=$2
+  log "provisioning $name with $provisionScript"
+  multipass transfer $provisionScript $name:/tmp/provision.sh
   multipass exec $name -- sudo bash /tmp/provision.sh
   exit 0
-fi
+}
+
+drifter-start-if-necessary() {
+  local name=$1
+  if [[ "$(multipass info $name --format json | jq -r .info.$name.state)" != "Running" ]] ; then
+    log "starting $name"
+    multipass start $name
+  else
+    log "$name already started"
+  fi
+}
 
 
-# start if not running
-if [[ "$(multipass info $name --format json | jq -r .info.$name.state)" != "Running" ]] ; then
-  multipass start $name
-fi
-
-# start shell
-if [[ "$command" == "shell" ]] ; then
+drifter-shell() {
+  local name=$1
+  log "starting $name shell"
   multipass shell $name
   exit 0
-fi
+}
 
-
-ip=$(multipass info $name --format json | jq -r .info.$name.ipv4[0])
-
-if [[ "$command" == "tunnels" ]] ; then
+# TODO: configurable tunnels!
+drifter-tunnels() {
+  local name=$1
+  local ip=$2
+  log "starting $name tunnels (ip: $ip)"
   ssh ubuntu@$ip \
-      -N \
       -i $sshKey \
       -A \
       -L 3000:localhost:3000 \
@@ -84,9 +93,78 @@ if [[ "$command" == "tunnels" ]] ; then
       -L 8025:localhost:8025 \
       -L 9100:localhost:9100 \
       -L 9630:localhost:9630
-fi
+}
 
-
-if [[ "$command" == "ssh" ]] ; then
+drifter-ssh() {
+  local name=$1
+  local ip=$2
+  log "sshing to $name (ip: $ip)"
   ssh ubuntu@$ip -i $sshKey -A
-fi
+}
+
+
+drifter-ip() {
+  local name=$1
+  log "finding ip for $name"
+  ip=$(multipass info $name --format json | jq -r .info.$name.ipv4[0])
+  log "$name -> $ip"
+  echo $ip
+}
+
+
+# Entry point
+drifter-main() {
+  local name=$1
+  local command=$2
+  local provisionScript=$3
+
+  # validate name
+  if [[ "$name" == "" ]] ; then
+    log "Need a name! Only 'dev' and 'work' are supported atm."
+    multipass list
+    exit 1
+  fi
+
+  if [[ "$name" == "work" || "$name" == "dev" ]] ; then
+    log "$name ok"
+  else
+    log "Unknown machine name: $name, accepted: 'dev' and 'work'"
+    exit 1
+  fi
+
+  drifter-ensure-ssh-key
+  drifter-launch-if-necessary $name
+
+  case $command in
+    suspend)
+      drifter-suspend $name
+      ;;
+    stop)
+      drifter-stop $name
+      ;;
+    provision)
+      drifter-provision $name $provisionScript
+      ;;
+    tunnels)
+      drifter-tunnels $name $(drifter-ip $name)
+      ;;
+    shell)
+      drifter-shell $name
+      ;;
+    ssh)
+      drifter-ssh $name $(drifter-ip $name)
+      ;;
+    ip)
+      echo $(drifter-ip $name)
+      ;;
+    *)
+      log "Accepted commands: stop, provision, tunnels, shell ,ssh, ip"
+      log "Running any command will start the VM"
+      exit 1
+      ;;
+    esac
+}
+
+# Do it!
+# name / command / optional provision script
+drifter-main "$1" "$2" "$3"
