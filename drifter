@@ -13,7 +13,7 @@ sshKey=~/.ssh/multipass.id_rsa
 # - generate a dedicated SSH key
 # - add it via cloud-init
 # and stop copying the mulitpass key
-drifter-ensure-ssh-key() {
+drifter_ensure_ssh_key() {
   # If we don't have it - get the multipass ssh key, we will need sudo for that
   if [[ ! -e $sshKey  ]] ; then
     log "$sshKey not found, copying"
@@ -22,7 +22,7 @@ drifter-ensure-ssh-key() {
   fi
 }
 
-drifter-launch-if-necessary() {
+drifter_launch_if_necessary() {
   local name=$1
   # Create the machine if not there already
   if [[ "$(multipass info --all --format json | jq -r .info.$name)" == "null" ]] ;then
@@ -37,21 +37,21 @@ drifter-launch-if-necessary() {
 
 }
 
-drifter-stop() {
+drifter_stop() {
   local name=$1
   log "stopping $name"
   multipass stop $name
   exit 0
 }
 
-drifter-suspend() {
+drifter_suspend() {
   local name=$1
   log "suspending $name"
   multipass suspend $name
   exit 0
 }
 
-drifter-provision() {
+drifter_provision() {
   local name=$1
   local provisionScript=$2
   log "provisioning $name with $provisionScript"
@@ -60,7 +60,7 @@ drifter-provision() {
   exit 0
 }
 
-drifter-start-if-necessary() {
+drifter_start_if_necessary() {
   local name=$1
   if [[ "$(multipass info $name --format json | jq -r .info.$name.state)" != "Running" ]] ; then
     log "starting $name"
@@ -71,7 +71,7 @@ drifter-start-if-necessary() {
 }
 
 
-drifter-shell() {
+drifter_shell() {
   local name=$1
   log "starting $name shell"
   multipass shell $name
@@ -79,7 +79,7 @@ drifter-shell() {
 }
 
 # TODO: configurable tunnels!
-drifter-tunnels() {
+drifter_tunnels() {
   local name=$1
   local ip=$2
   log "starting $name tunnels (ip: $ip)"
@@ -95,7 +95,7 @@ drifter-tunnels() {
       -L 9630:localhost:9630
 }
 
-drifter-ssh() {
+drifter_ssh() {
   local name=$1
   local ip=$2
   log "sshing to $name (ip: $ip)"
@@ -103,7 +103,7 @@ drifter-ssh() {
 }
 
 
-drifter-ip() {
+drifter_ip() {
   local name=$1
   log "finding ip for $name"
   ip=$(multipass info $name --format json | jq -r .info.$name.ipv4[0])
@@ -113,7 +113,7 @@ drifter-ip() {
 
 
 # Entry point
-drifter-main() {
+drifter_main() {
   local name=$1
   local command=$2
   local provisionScript=$3
@@ -132,30 +132,30 @@ drifter-main() {
     exit 1
   fi
 
-  drifter-ensure-ssh-key
-  drifter-launch-if-necessary $name
+  drifter_ensure_ssh_key
+  drifter_launch_if_necessary $name
 
   case $command in
     suspend)
-      drifter-suspend $name
+      drifter_suspend $name
       ;;
     stop)
-      drifter-stop $name
+      drifter_stop $name
       ;;
     provision)
-      drifter-provision $name $provisionScript
+      drifter_provision $name $provisionScript
       ;;
     tunnels)
-      drifter-tunnels $name $(drifter-ip $name)
+      drifter_tunnels $name $(drifter_ip $name)
       ;;
     shell)
-      drifter-shell $name
+      drifter_shell $name
       ;;
     ssh)
-      drifter-ssh $name $(drifter-ip $name)
+      drifter_ssh $name $(drifter_ip $name)
       ;;
     ip)
-      echo $(drifter-ip $name)
+      echo $(drifter_ip $name)
       ;;
     *)
       log "Accepted commands: stop, provision, tunnels, shell ,ssh, ip"
@@ -167,4 +167,4 @@ drifter-main() {
 
 # Do it!
 # name / command / optional provision script
-drifter-main "$1" "$2" "$3"
+drifter_main "$1" "$2" "$3"
