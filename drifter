@@ -2,6 +2,13 @@
 
 set -eo pipefail
 
+## 🧔🏻 Drifter, a small vagrant, powered by multipass
+## All commands require the name of the VM to be passed e.g.
+## # drifter dev ssh
+## or
+## # drifter provision dev ./my/vm.sh
+## Commands:
+
 log() {
   logger -t drifter -s -- "$*"  > /dev/stderr
 }
@@ -112,11 +119,21 @@ drifter_ip() {
 }
 
 
+drifter_help() {
+  grep '##' $0 | grep -v grep | sed 's/## //g'
+}
+
 # Entry point
 drifter_main() {
   local name=$1
   local command=$2
   local provisionScript=$3
+
+  if [[ "$name" == "-h" || "$name" == "--help" || "$name" == "help" ]] ; then
+    drifter_help
+    exit 0
+  fi
+
 
   # validate name
   if [[ "$name" == "" ]] ; then
@@ -136,35 +153,35 @@ drifter_main() {
   drifter_launch_if_necessary $name
 
   case $command in
-    suspend)
+    suspend) ## Suspend the VM. Unsupported right now
       drifter_suspend $name
       ;;
-    stop)
+    stop) ## Stop the VM
       drifter_stop $name
       ;;
-    provision)
+    provision) ## Provision the VM with given Bash script
       drifter_provision $name $provisionScript
       ;;
-    tunnels)
+    tunnels) ## Start a SSH session with multiple ports opened
       drifter_tunnels $name $(drifter_ip $name)
       ;;
-    shell)
+    shell) ## Start a shell, no agent or tunnels opened
       drifter_shell $name
       ;;
-    ssh)
+    ssh) ## Start a SSH session with SSH agent forwarded
       drifter_ssh $name $(drifter_ip $name)
       ;;
-    ip)
+    ip) ## Find the IP of the VM
       echo $(drifter_ip $name)
       ;;
     *)
-      log "Accepted commands: stop, provision, tunnels, shell ,ssh, ip"
-      log "Running any command will start the VM"
+      drifter_help
       exit 1
       ;;
     esac
 }
 
-# Do it!
+
+
 # name / command / optional provision script
 drifter_main "$1" "$2" "$3"
