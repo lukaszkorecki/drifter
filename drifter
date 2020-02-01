@@ -151,8 +151,11 @@ drifter_main() {
   fi
 
   drifter_ensure_ssh_key
-  drifter_launch_if_necessary $name
-  drifter_start_if_necessary $name
+
+  if [[ "$command" != "stop" || "$command" != "suspend" ]] ; then
+    drifter_launch_if_necessary $name
+    drifter_start_if_necessary $name
+  fi
 
   case $command in
     suspend) ## Suspend the VM. Unsupported right now
