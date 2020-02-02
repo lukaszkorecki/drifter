@@ -21,6 +21,7 @@ if [[ "$(which keychain)" == "" ]] ; then
   sudo apt install -y apt-transport-https ca-certificates software-properties-common \
        emacs25 emacs25-common \
        tmux curl jq \
+       inotify-tools \
        ruby2.5 ruby2.5-dev \
        zlib1g-dev liblzma-dev \
        build-essential patch \
