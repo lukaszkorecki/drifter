@@ -8,7 +8,7 @@ log() {
 
 if [[ $(cat /etc/timezone) != "Etc/UTC" ]] ; then
   log "Setting up timezone to UTC"
-  echo "Etc/UTC" > /etc/timezone
+  sudo echo "Etc/UTC" > /etc/timezone
   sudo dpkg-reconfigure -f noninteractive tzdata
   sudo timedatectl set-ntp false
   sudo apt install -y ntp
