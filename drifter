@@ -70,6 +70,7 @@ drifter_provision() {
 
 drifter_start_if_necessary() {
   local name=$1
+  drifter_launch_if_necessary $name
   if [[ "$(multipass info $name --format json | jq -r .info.$name.state)" != "Running" ]] ; then
     log "starting $name"
     multipass start $name
@@ -151,11 +152,6 @@ drifter_main() {
   fi
 
   drifter_ensure_ssh_key
-
-  if [[ "$command" != "stop" || "$command" != "suspend" ]] ; then
-    drifter_launch_if_necessary $name
-    drifter_start_if_necessary $name
-  fi
 
   case $command in
     suspend) ## Suspend the VM. Unsupported right now
