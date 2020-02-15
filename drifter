@@ -45,6 +45,17 @@ drifter_launch_if_necessary() {
 
 }
 
+drifter_start_if_necessary() {
+  local name=$1
+  drifter_launch_if_necessary $name
+  if [[ "$(multipass info $name --format json | jq -r .info.$name.state)" != "Running" ]] ; then
+    log "starting $name"
+    multipass start $name
+  else
+    log "$name already started"
+  fi
+}
+
 drifter_stop() {
   local name=$1
   log "stopping $name"
@@ -68,16 +79,7 @@ drifter_provision() {
   exit 0
 }
 
-drifter_start_if_necessary() {
-  local name=$1
-  drifter_launch_if_necessary $name
-  if [[ "$(multipass info $name --format json | jq -r .info.$name.state)" != "Running" ]] ; then
-    log "starting $name"
-    multipass start $name
-  else
-    log "$name already started"
-  fi
-}
+
 
 
 drifter_shell() {
@@ -154,6 +156,10 @@ drifter_main() {
   drifter_ensure_ssh_key
 
   case $command in
+    start)
+      drifter_launch_if_necessary $name
+      drifter_start_if_necessary $name
+      ;;
     suspend) ## Suspend the VM. Unsupported right now
       drifter_suspend $name
       ;;
