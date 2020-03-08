@@ -42,12 +42,19 @@ You can choose to use bundled `provision.sh` script, which installs Docker, Emac
 # Usage
 
 ```
-🧔🏻 Drifter, a small vagrant, powered by multipass
-All commands require the name of the VM to be passed e.g.
-# drifter dev ssh
-or
-# drifter provision dev ./my/vm.sh
-Commands:
+  # Parses out all lines starting with to generate docs
+  🧔🏻 Drifter, a small vagrant, powered by multipass
+  All commands require the name of the VM to be passed e.g.
+  # drifter -n dev -c ssh
+  # drifter -n work -c tunnels
+  Version=0.0.1
+  or
+  # drifter -c provision -n dev -p ./my/vm.sh
+  Args:
+  -n name of the vm (one of: dev, work)
+  -c command
+  -p if command is provision, path to the bash script to run in the machine
+  Commands:
     suspend) Suspend the VM. Unsupported right now
     stop) Stop the VM
     provision) Provision the VM with given Bash script
