@@ -11,7 +11,7 @@ if [[ $(cat /etc/timezone) != "Etc/UTC" ]] ; then
   sudo echo "Etc/UTC" > /etc/timezone
   sudo dpkg-reconfigure -f noninteractive tzdata
   sudo timedatectl set-ntp false
-  sudo apt install -y ntp
+  sudo apt install -y chrony
 else
   log "Timezone is in UTC"
 fi
