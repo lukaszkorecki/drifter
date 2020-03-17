@@ -103,7 +103,7 @@ drifter_command_ssh() {
 }
 
 
-drifter_ip() {
+drifter_command_ip() {
   local name=$1
   log "finding ip for $name"
   ip=$(multipass info $name --format json | jq -r .info.$name.ipv4[0])
