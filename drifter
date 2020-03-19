@@ -113,10 +113,6 @@ drifter_command_ip() {
   echo $ip
 }
 
-dirfter_command_ip() {
-  echo $(drifter_ip $name)
-}
-
 drifter_help() {
   # Parses out all lines starting with ## to generate docs
   grep '##' $0 | grep -v grep | sed 's/## //g'
@@ -178,13 +174,13 @@ drifter_main() {
       drifter_command_provision $name $provisionScript
       ;;
     tunnels) ## Start a SSH session with multiple ports opened
-      drifter_command_tunnels $name $(drifter_ip $name)
+      drifter_command_tunnels $name $(drifter_command_ip $name)
       ;;
     shell) ## Start a shell, no agent or tunnels opened
       drifter_command_shell $name
       ;;
     ssh) ## Start a SSH session with SSH agent forwarded
-      drifter_command_ssh $name $(drifter_ip $name)
+      drifter_command_ssh $name $(drifter_command_ip $name)
       ;;
     ip) ## Find the IP of the VM
       drifter_command_ip $name
