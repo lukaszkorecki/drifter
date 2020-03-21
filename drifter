@@ -17,21 +17,21 @@ drifter_ensure_ssh_key() {
   # If we don't have it - get the multipass ssh key, we will need sudo for that
   if [[ ! -e $sshKey  ]] ; then
     log "$sshKey not found, copying"
-    sudo cp /var/root/Library/Application\ Support/multipassd/ssh-keys/id_rsa $sshKey
-    sudo chown $USER:staff $sshKey
+    sudo cp /var/root/Library/Application\ Support/multipassd/ssh-keys/id_rsa "$sshKey"
+    sudo chown "$USER":staff "$sshKey"
   fi
 }
 
 drifter_launch_if_necessary() {
   local name=$1
   # Create the machine if not there already
-  if [[ "$(multipass info --all --format json | jq -r .info.$name)" == "null" ]] ;then
+  if [[ "$(multipass info --all --format json | jq -r ".info.$name")" == "null" ]] ;then
     log "creating $name"
     multipass launch \
               --cpus 4 \
               --mem 4G \
               --disk 20G \
-              --name $name \
+              --name "$name" \
               18.04
   fi
 
@@ -39,10 +39,10 @@ drifter_launch_if_necessary() {
 
 drifter_command_start() {
   local name=$1
-  drifter_launch_if_necessary $name
-  if [[ "$(multipass info $name --format json | jq -r .info.$name.state)" != "Running" ]] ; then
+  drifter_launch_if_necessary "$name"
+  if [[ "$(multipass info "$name" --format json | jq -r ".info.$name.state")" != "Running" ]] ; then
     log "starting $name"
-    multipass start $name
+    multipass start "$name"
   else
     log "$name already started"
   fi
@@ -51,14 +51,14 @@ drifter_command_start() {
 drifter_command_stop() {
   local name=$1
   log "stopping $name"
-  multipass stop $name
+  multipass stop "$name"
   exit 0
 }
 
 drifter_suspend() {
   local name=$1
   log "suspending $name"
-  multipass suspend $name
+  multipass suspend "$name"
   exit 0
 }
 
@@ -66,15 +66,15 @@ drifter_command_provision() {
   local name=$1
   local provisionScript=$2
   log "provisioning $name with $provisionScript"
-  multipass transfer $provisionScript $name:/tmp/provision.sh
-  multipass exec $name -- sudo bash /tmp/provision.sh
+  multipass transfer "$provisionScript" "$name":/tmp/provision.sh
+  multipass exec "$name" -- sudo bash /tmp/provision.sh
   exit 0
 }
 
 drifter_command_shell() {
   local name=$1
   log "starting $name shell"
-  multipass shell $name
+  multipass shell "$name"
   exit 0
 }
 
@@ -83,8 +83,8 @@ drifter_command_tunnels() {
   local name=$1
   local ip=$2
   log "starting $name tunnels (ip: $ip)"
-  ssh ubuntu@$ip \
-      -i $sshKey \
+  ssh "ubuntu@$ip" \
+      -i "$sshKey" \
       -A \
       -L 3000:localhost:3000 \
       -L 3001:localhost:3001 \
@@ -101,21 +101,21 @@ drifter_command_ssh() {
   local name=$1
   local ip=$2
   log "sshing to $name (ip: $ip)"
-  ssh ubuntu@$ip -i $sshKey -A
+  ssh "ubuntu@$ip" -i "$sshKey" -A
 }
 
 
 drifter_command_ip() {
   local name=$1
   log "finding ip for $name"
-  ip=$(multipass info $name --format json | jq -r .info.$name.ipv4[0])
+  ip=$(multipass info "$name" --format json | jq -r ".info.$name.ipv4[0]")
   log "$name -> $ip"
-  echo $ip
+  echo "$ip"
 }
 
 drifter_help() {
   # Parses out all lines starting with ## to generate docs
-  grep '##' $0 | grep -v grep | sed 's/## //g'
+  grep '##' "$0" | grep -v grep | sed 's/## //g'
   ## 🧔🏻 Drifter, a small vagrant, powered by multipass
   ## All commands require the name of the VM to be passed e.g.
   ## # drifter -n dev -c ssh
@@ -161,29 +161,29 @@ drifter_main() {
 
   case $command in
     start)
-      drifter_launch_if_necessary $name
-      drifter_command_start $name
+      drifter_launch_if_necessary "$name"
+      drifter_command_start "$name"
       ;;
     suspend) ## Suspend the VM. Unsupported right now
-      drifter_command_suspend $name
+      drifter_command_suspend "$name"
       ;;
     stop) ## Stop the VM
-      drifter_command_stop $name
+      drifter_command_stop "$name"
       ;;
     provision) ## Provision the VM with given Bash script
-      drifter_command_provision $name $provisionScript
+      drifter_command_provision "$name" "$provisionScript"
       ;;
     tunnels) ## Start a SSH session with multiple ports opened
-      drifter_command_tunnels $name $(drifter_command_ip $name)
+      drifter_command_tunnels "$name" "$(drifter_command_ip "$name")"
       ;;
     shell) ## Start a shell, no agent or tunnels opened
-      drifter_command_shell $name
+      drifter_command_shell "$name"
       ;;
     ssh) ## Start a SSH session with SSH agent forwarded
-      drifter_command_ssh $name $(drifter_command_ip $name)
+      drifter_command_ssh "$name" "$(drifter_command_ip "$name")"
       ;;
     ip) ## Find the IP of the VM
-      drifter_command_ip $name
+      drifter_command_ip "$name"
 
       ;;
     *)
@@ -198,7 +198,7 @@ name=
 command=
 provisionScript=
 
-while getopts "n:c:s:h" OPTIONS; do
+while getopts "n:c:hp:" OPTIONS; do
   case "$OPTIONS" in
     h)
       drifter_help
@@ -212,6 +212,10 @@ while getopts "n:c:s:h" OPTIONS; do
       ;;
     p)
       provisionScript="$OPTARG"
+      ;;
+    *)
+      drifter_help
+      exit 0
       ;;
   esac
 done
