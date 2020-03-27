@@ -7,6 +7,7 @@ log() {
 }
 
 if [[ $(cat /etc/timezone) != "Etc/UTC" ]] ; then
+  sudo apt-get update -y
   log "Setting up timezone to UTC"
   sudo echo "Etc/UTC" > /etc/timezone
   sudo dpkg-reconfigure -f noninteractive tzdata
@@ -18,6 +19,7 @@ fi
 
 if [[ "$(which keychain)" == "" ]] ; then
   log "Installing dev tools and runtimes"
+  sudo apt-get update -y
   sudo apt install -y apt-transport-https ca-certificates software-properties-common \
        emacs25 emacs25-common \
        tmux curl jq \
