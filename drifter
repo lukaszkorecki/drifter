@@ -29,7 +29,7 @@ drifter_launch_if_necessary() {
     log "creating $name"
     multipass launch \
               --cpus 4 \
-              --mem 4G \
+              --mem 6G \
               --disk 20G \
               --name "$name" \
               18.04
@@ -119,12 +119,12 @@ drifter_help() {
   ## 🧔🏻 Drifter, a small vagrant, powered by multipass
   ## All commands require the name of the VM to be passed e.g.
   ## # drifter -n dev -c ssh
-  ## # drifter -n work -c tunnels
+  ## # drifter -n wrk -c tunnels
   ## Version=0.0.1
   ## or
   ## # drifter -c provision -n dev -p ./my/vm.sh
   ## Args:
-  ## -n name of the vm (one of: dev, work)
+  ## -n name of the vm (one of: dev, wrk)
   ## -c command
   ## -p if command is provision, path to the bash script to run in the machine
 
@@ -145,15 +145,15 @@ drifter_main() {
 
   # validate name
   if [[ "$name" == "" ]] ; then
-    log "Need a name! Only 'dev' and 'work' are supported atm."
+    log "Need a name! Only 'dev' and 'wrk' are supported atm."
     multipass list
     exit 1
   fi
 
-  if [[ "$name" == "work" || "$name" == "dev" ]] ; then
+  if [[ "$name" == "wrk" || "$name" == "dev" ]] ; then
     log "$name ok"
   else
-    log "Unknown machine name: $name, accepted: 'dev' and 'work'"
+    log "Unknown machine name: $name, accepted: 'dev' and 'wrk'"
     exit 1
   fi
 

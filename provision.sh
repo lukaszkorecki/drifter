@@ -58,7 +58,6 @@ if [[ "$(which gcloud)" == "" ]] ; then
   sudo apt install -y yarn docker-ce \
        google-cloud-sdk
 
-  sudo usermod -aG docker vagrant
   sudo usermod -aG docker ubuntu
   sudo shutdown -r now
 
