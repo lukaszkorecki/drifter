@@ -95,6 +95,7 @@ drifter_command_tunnels() {
       -L 9630:localhost:9630 \
       -L 9989:localhost:9989 \
       -L 9750:localhost:9750 \
+      -L 9850:localhost:9850 \
       -L 15672:localhost:15672
 
 }
