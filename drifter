@@ -29,7 +29,7 @@ drifter_launch_if_necessary() {
     log "creating $name"
     multipass launch \
               --cpus 4 \
-              --mem 6G \
+              --mem 8G \
               --disk 20G \
               --name "$name" \
               18.04
@@ -90,6 +90,7 @@ drifter_command_tunnels() {
       -L 3001:localhost:3001 \
       -L 3005:localhost:3005 \
       -L 3034:localhost:3034 \
+      -L 6061:localhost:6061 \
       -L 8025:localhost:8025 \
       -L 9100:localhost:9100 \
       -L 9630:localhost:9630 \
