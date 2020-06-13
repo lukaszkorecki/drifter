@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+
 
 log() {
   logger -t drifter -s -- "$*"  > /dev/stderr
@@ -122,14 +122,14 @@ drifter_help() {
   grep '##' "$0" | grep -v grep | sed 's/## //g'
   ## 🧔🏻 Drifter, a small vagrant, powered by multipass
   ## All commands require the name of the VM to be passed e.g.
-  ## # drifter -n dev -c ssh
-  ## # drifter -n wrk -c tunnels
-  ## Version=0.0.1
+  ## # drifter dev ssh
+  ## # drifter wrk tunnels
+  ## Version=0.0.2
   ## or
-  ## # drifter -c provision -n dev -p ./my/vm.sh
-  ## Args:
-  ## -n name of the vm (one of: dev, wrk)
-  ## -c command
+  ## # drifter dev provision -p ./my/vm.sh
+  ## Args, in order:
+  ## name of the vm (one of: dev, wrk)
+  ## command
   ## -p if command is provision, path to the bash script to run in the machine
 
   ## Commands:
@@ -151,6 +151,7 @@ drifter_main() {
   if [[ "$name" == "" ]] ; then
     log "Need a name! Only 'dev' and 'wrk' are supported atm."
     multipass list
+    drifter_help
     exit 1
   fi
 
@@ -197,22 +198,22 @@ drifter_main() {
     esac
 }
 
-# Entrypoint
+# Entrypoint + command line parsing
 name=
 command=
 provisionScript=
 
-while getopts "n:c:hp:" OPTIONS; do
+name="$1"
+shift
+
+command="$1"
+shift
+
+while getopts "hp:" OPTIONS; do
   case "$OPTIONS" in
     h)
       drifter_help
       exit 0
-      ;;
-    n)
-      name="$OPTARG"
-      ;;
-    c)
-      command="$OPTARG"
       ;;
     p)
       provisionScript="$OPTARG"
@@ -224,9 +225,6 @@ while getopts "n:c:hp:" OPTIONS; do
   esac
 done
 
-if [[ "$name" == ""  ]] || [[ "$command" == "" ]] ; then
-  echo "missing name (given: $name) or command (given: $command)"
-  exit 1
-fi
+set -eo pipefail
 
 drifter_main "$name" "$command" "$provisionScript"
