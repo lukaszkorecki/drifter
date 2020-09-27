@@ -105,7 +105,7 @@ drifter_command_ssh() {
   local name=$1
   local ip=$2
   log "sshing to $name (ip: $ip)"
-  ssh "ubuntu@$ip" -i "$sshKey" -A
+  ssh -X "ubuntu@$ip" -i "$sshKey" -A
 }
 
 
