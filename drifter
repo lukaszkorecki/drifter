@@ -117,6 +117,20 @@ drifter_command_ip() {
   echo "$ip"
 }
 
+
+drifter_command_ssh_config() {
+  ip=$(drifter_command_ip $name)
+  echo "Host $name"
+  echo "  HostName $ip"
+  echo "  StrictHostKeyChecking no"
+  echo "  UserKnownHostsFile=/dev/null"
+  echo "  User ubuntu"
+  echo "  IdentityFile ~/.ssh/multipass.id_rsa"
+
+
+}
+
+
 drifter_help() {
   # Parses out all lines starting with ## to generate docs
   grep '##' "$0" | grep -v grep | sed 's/## //g'
@@ -189,7 +203,9 @@ drifter_main() {
       ;;
     ip) ## Find the IP of the VM
       drifter_command_ip "$name"
-
+      ;;
+    ssh-config) ## echo SSH config for given VM
+      drifter_command_ssh_config
       ;;
     *)
       drifter_help
