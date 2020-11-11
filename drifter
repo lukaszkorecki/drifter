@@ -141,20 +141,22 @@ drifter_command_ssh_config() {
 
 
 drifter_help() {
-  # Parses out all lines starting with ## to generate docs
+  # Parses out all lines starting with double # to generate docs
   grep '##' "$0" | grep -v grep | sed 's/## //g'
   ## 🧔🏻 Drifter, a small vagrant, powered by multipass
-  ## All commands require the name of the VM to be passed e.g.
-  ## # drifter dev ssh
-  ## # drifter wrk tunnels
   ## Version=0.0.2
+  ## All commands require the name of the VM to be passed e.g.
+  ## $ drifter dev ssh
+  ## $ drifter wrk tunnels
   ## or
-  ## # drifter dev provision -p ./my/vm.sh
+  ## $ drifter dev provision -p ./my/vm.sh
   ## Args, in order:
   ## name of the vm (one of: dev, wrk)
-  ## command
+  ## command (see below)
+  ## and additional flags
   ## -p if command is provision, path to the bash script to run in the machine
-
+  ## -P if command is open-port, to open a port for an already active session (started via ssh or tunnels commands):
+  ## drifter wrk open-port -P 32132
   ## Commands:
 }
 
@@ -217,7 +219,7 @@ drifter_main() {
     ssh-config) ## echo SSH config for given VM
       drifter_command_ssh_config
       ;;
-    open-port) ## Opens a port specificified with a -P flag. Requires active SSH or tunnel session
+    open-port) ## Opens a port specificified with a -P flag. Requires active SSH or tunnel session to be started first
       drifter_command_open_port "$name" "$(drifter_command_ip "$name")" "$extraPort"
       ;;
     *)

@@ -42,18 +42,20 @@ You can choose to use bundled `provision.sh` script, which installs Docker, Emac
 # Usage
 
 ```
-  # Parses out all lines starting with to generate docs
-  🧔🏻 Drifter, a small vagrant, powered by multipass
+ 🧔🏻 Drifter, a small vagrant, powered by multipass
+  Version=0.0.2
   All commands require the name of the VM to be passed e.g.
-  # drifter -n dev -c ssh
-  # drifter -n work -c tunnels
-  Version=0.0.1
+  $ drifter dev ssh
+  $ drifter wrk tunnels
   or
-  # drifter -c provision -n dev -p ./my/vm.sh
-  Args:
-  -n name of the vm (one of: dev, work)
-  -c command
+  $ drifter dev provision -p ./my/vm.sh
+  Args, in order:
+  name of the vm (one of: dev, wrk)
+  command (see below)
+  and additional flags
   -p if command is provision, path to the bash script to run in the machine
+  -P if command is open-port, to open a port for an already active session (started via ssh or tunnels commands):
+  drifter wrk open-port -P 32132
   Commands:
     suspend) Suspend the VM. Unsupported right now
     stop) Stop the VM
@@ -62,4 +64,6 @@ You can choose to use bundled `provision.sh` script, which installs Docker, Emac
     shell) Start a shell, no agent or tunnels opened
     ssh) Start a SSH session with SSH agent forwarded
     ip) Find the IP of the VM
+    ssh-config) echo SSH config for given VM
+    open-port) Opens a port specificified with a -P flag. Requires active SSH or tunnel session to be started first
 ```
