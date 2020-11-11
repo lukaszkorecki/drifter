@@ -82,6 +82,8 @@ drifter_command_tunnels() {
   local ip=$2
   log "starting $name tunnels (ip: $ip)"
   ssh "ubuntu@$ip" \
+      -M \
+      -S /tmp/$name.ssh.socket \
       -i "$sshKey" \
       -A \
       -L 3000:localhost:3000 \
@@ -100,11 +102,19 @@ drifter_command_tunnels() {
 
 }
 
+drifter_command_open_port() {
+  local name=$1
+  local ip=$2
+  local port=$3
+  log "opening port $port  $name (ip: $ip) "
+  ssh -O forward -S /tmp/$name.ssh.socket "ubuntu@$ip" -i "$sshKey" -L $port:localhost:$port
+}
+
 drifter_command_ssh() {
   local name=$1
   local ip=$2
   log "sshing to $name (ip: $ip)"
-  ssh -X "ubuntu@$ip" -i "$sshKey" -A
+  ssh -M -S /tmp/$name.ssh.socket "ubuntu@$ip" -i "$sshKey" -A
 }
 
 
@@ -126,7 +136,6 @@ drifter_command_ssh_config() {
   echo "  UserKnownHostsFile=/dev/null"
   echo "  User ubuntu"
   echo "  IdentityFile ~/.ssh/multipass.id_rsa"
-
 
 }
 
@@ -154,6 +163,7 @@ drifter_main() {
   local name=$1
   local command=$2
   local provisionScript=$3
+  local extraPort=$4
 
   if [[ "$name" == "-h" || "$name" == "--help" || "$name" == "help" ]] ; then
     drifter_help
@@ -207,6 +217,9 @@ drifter_main() {
     ssh-config) ## echo SSH config for given VM
       drifter_command_ssh_config
       ;;
+    open-port) ## Opens a port specificified with a -P flag. Requires active SSH or tunnel session
+      drifter_command_open_port "$name" "$(drifter_command_ip "$name")" "$extraPort"
+      ;;
     *)
       drifter_help
       exit 1
@@ -218,14 +231,14 @@ drifter_main() {
 name=
 command=
 provisionScript=
-
+extraPort=
 name="$1"
 shift
 
 command="$1"
 shift
 
-while getopts "hp:" OPTIONS; do
+while getopts "hp:P:" OPTIONS; do
   case "$OPTIONS" in
     h)
       drifter_help
@@ -233,6 +246,9 @@ while getopts "hp:" OPTIONS; do
       ;;
     p)
       provisionScript="$OPTARG"
+      ;;
+    P)
+      extraPort="$OPTARG"
       ;;
     *)
       drifter_help
@@ -243,4 +259,4 @@ done
 
 set -eo pipefail
 
-drifter_main "$name" "$command" "$provisionScript"
+drifter_main "$name" "$command" "$provisionScript" "$extraPort"
